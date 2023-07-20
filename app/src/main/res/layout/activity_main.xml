@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/btnSa"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+<!--    <ImageView-->
+<!--        android:id="@+id/combinedImageView"-->
+<!--        android:layout_width="@dimen/_200sdp"-->
+<!--        android:layout_height="@dimen/_200sdp"-->
+<!--        app:layout_constraintBottom_toTopOf="@+id/layout_switch1"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        tools:srcCompat="@tools:sample/avatars"-->
+<!--        android:visibility="gone"/>-->
+
+    <ScrollView
+        android:id="@+id/combinedImageView"
+        android:layout_width="@dimen/_270sdp"
+        android:layout_height="@dimen/_220sdp"
+        app:layout_constraintBottom_toTopOf="@+id/layout_switch1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/ivCombine"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                tools:srcCompat="@tools:sample/avatars"
+                android:contentDescription="@string/vertical_view_image" />
+
+        </RelativeLayout>
+
+    </ScrollView>
+    <HorizontalScrollView
+        android:id="@+id/combinedImageView2"
+        android:layout_width="@dimen/_270sdp"
+        android:layout_height="@dimen/_220sdp"
+        app:layout_constraintBottom_toTopOf="@+id/layout_switch1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/ivCombine2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                tools:srcCompat="@tools:sample/avatars"
+                android:contentDescription="@string/horizontal_view_image" />
+
+        </RelativeLayout>
+
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:id="@+id/layout_switch1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/spaceSeekBar"
+        app:layout_constraintEnd_toStartOf="@+id/drdResizeImageLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/combinedImageView">
+
+        <Switch
+            android:id="@+id/switch1"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="@string/vertically"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/horizontally" />
+    </LinearLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/drdResizeImageLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/layout_switch1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/layout_switch1"
+        app:layout_constraintTop_toTopOf="@+id/layout_switch1">
+
+        <AutoCompleteTextView
+            android:id="@+id/drdResizeImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:inputType="none"
+            android:labelFor="@id/drdResizeImage"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/tvSpacing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/spacing"
+        app:layout_constraintBottom_toTopOf="@+id/spaceSeekBar"
+        app:layout_constraintStart_toStartOf="@+id/spaceSeekBar" />
+    <SeekBar
+        android:id="@+id/spaceSeekBar"
+        style="@style/SpaceSeekBarCustomStyle"
+        android:layout_width="@dimen/_250sdp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/borderSeekBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/layout_switch1"
+        />
+
+
+    <TextView
+        android:id="@+id/tvBorder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/border"
+        app:layout_constraintBottom_toTopOf="@+id/borderSeekBar"
+        app:layout_constraintStart_toStartOf="@+id/borderSeekBar" />
+    <SeekBar
+        android:id="@+id/borderSeekBar"
+        style="@style/BorderSeekBarCustomStyle"
+        android:layout_width="@dimen/_250sdp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/btnPicImage"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/spaceSeekBar" />
+
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPicImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/picimage"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintEnd_toStartOf="@+id/btnSave"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/borderSeekBar"
+        app:cornerRadius="15dp"/>
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/save"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnPicImage"
+        app:layout_constraintTop_toTopOf="@+id/btnPicImage"
+        app:cornerRadius="15dp"/>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_navigation_menu" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

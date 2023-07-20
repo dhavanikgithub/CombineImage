@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">CombineImage</string>
+    <string-array name="spinner_items">
+        <item>KB</item>
+        <item>MB</item>
+    </string-array>
+    <string name="printDimension">Dimension: %d X %d</string>
+    <string name="printSize">Size: %s</string>
+    <string name="none">None</string>
+    <string name="Done">Done</string>
+    <string name="Allow">ALLOW</string>
+    <string name="LoadingText">Processing....</string>
+    <string name="vertical_view_image">Vertical View Image</string>
+    <string name="horizontal_view_image">Horizontal View Image</string>
+    <string name="vertically">Vertically</string>
+    <string name="horizontally">Horizontally</string>
+    <string name="spacing">Spacing</string>
+    <string name="border">Border</string>
+    <string name="picimage">PicImage</string>
+    <string name="save">Save</string>
+    <string name="need_permissions">Need Permissions</string>
+    <string name="permission_description_1">In order for you use certain features of this app, you need to give permission. See description for each permission</string>
+    <string name="storage_permission_image_description">Storage/Image Access Image</string>
+    <string name="storage_permission_name">Photo Library</string>
+    <string name="storage_permission_description">Allow to access your photos</string>
+    <string name="camera_permission_image_description">Camera Permission Image</string>
+    <string name="camera_permission_name">Camera</string>
+    <string name="camera_permission_description">Allow to access your camera</string>
+    <string name="permission_description_2">Permission are necessary for all the features and functions to work properly.</string>
+    <string name="let_s_start">Let\'s Start</string>
+    <string name="reduce">Reduce</string>
+    <string name="proceed">Proceed</string>
+    <string name="browse">Browse</string>
+    <string name="original">Original</string>
+    <string name="compressed">Compressed</string>
+    <string name="type_here">Type Here</string>
+    <string name="original_image">Original Image</string>
+    <string name="compressed_image">Compressed Image</string>
+</resources>
