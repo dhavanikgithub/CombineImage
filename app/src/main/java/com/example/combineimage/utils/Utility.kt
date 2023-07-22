@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import android.widget.Toast
 import java.io.*
@@ -38,21 +39,16 @@ class Utility {
             }
         }
 
-        fun uriToFilePath(
-            selectedVideoUri: Uri,
-            contentResolver: ContentResolver
-        ): String? {
-            val filePath: String
-            val filePathColumn = arrayOf(MediaStore.MediaColumns.DATA)
-            val cursor: Cursor? =
-                contentResolver.query(selectedVideoUri, filePathColumn, null, null, null)
-            cursor!!.moveToFirst()
-            val columnIndex: Int = cursor.getColumnIndex(filePathColumn[0])
-            filePath = cursor.getString(columnIndex)
-            cursor.close()
-            return filePath
+        fun getFileNameFromUri(contentResolver: ContentResolver, uri: Uri): String? {
+            var fileName: String? = null
+            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    fileName = cursor.getString(nameIndex)
+                }
+            }
+            return fileName
         }
-
         fun getCurrentDateTime(): String {
             val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault())
             val currentTime = Date()
@@ -97,10 +93,6 @@ class Utility {
         fun uriToBitmap(contentResolver:ContentResolver, uri:Uri):Bitmap
         {
             return MediaStore.Images.Media.getBitmap(contentResolver, uri)
-        }
-
-        fun uriToFileObject(contentResolver:ContentResolver, uri:Uri):File{
-            return File(uriToFilePath(uri,contentResolver)!!)
         }
 
         fun getFileSize(filePath: String): Long {
@@ -256,6 +248,26 @@ class Utility {
         fun getDownloadFolderPath(): String? {
             val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             return downloadDir?.absolutePath
+        }
+
+        fun Bitmap.rotateLeft(): Bitmap {
+            val matrix = Matrix().apply { postRotate(-90f) }
+            return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+        }
+
+        fun Bitmap.rotateRight(): Bitmap {
+            val matrix = Matrix().apply { postRotate(90f) }
+            return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+        }
+
+        fun Bitmap.mirrorHorizontally(): Bitmap {
+            val matrix = Matrix().apply { postScale(-1f, 1f) }
+            return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+        }
+
+        fun Bitmap.mirrorVertically(): Bitmap {
+            val matrix = Matrix().apply { postScale(1f, -1f) }
+            return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
         }
     }
 }

@@ -28,19 +28,17 @@ class PermissionActivity : AppCompatActivity() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         intent.data = Uri.fromParts("package", packageName, null)
 
-        if(permissionCheck())
-        {
-            Intent(this, MainActivity::class.java).apply {
+        if(permissionCheck()) {
+            Intent(this, CombineImageActivity::class.java).apply {
                 startActivity(this)
                 finish()
             }
-        }
-        else{
+        } else{
             binding.btnStart.isEnabled=false
         }
 
         binding.btnStart.setOnClickListener {
-            Intent(this, MainActivity::class.java).apply {
+            Intent(this, CombineImageActivity::class.java).apply {
                 startActivity(this)
                 finish()
             }
@@ -128,8 +126,7 @@ class PermissionActivity : AppCompatActivity() {
         }
     }
 
-    fun permissionCheck():Boolean
-    {
+    fun permissionCheck():Boolean {
         val cameraPermission = ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         val readStoragePermission = ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
         val writeStoragePermission = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
@@ -154,8 +151,7 @@ class PermissionActivity : AppCompatActivity() {
                 binding.txtAllow1.text = getString(R.string.Allow)
                 binding.txtAllow1.setTextColor(getColor(R.color.permissionAllowText))
             }
-        }
-        else{
+        } else{
             if(readStoragePermission && writeStoragePermission)
             {
                 binding.txtAllow1.text = getString(R.string.Done)

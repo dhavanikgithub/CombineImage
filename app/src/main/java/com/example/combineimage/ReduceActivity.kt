@@ -11,22 +11,22 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.example.combineimage.databinding.ActivityReduceBinding
 import com.example.combineimage.model.ImageProperty
 import com.example.combineimage.utils.CustomProgressDialog
 import com.example.combineimage.utils.Utility.Companion.convertToBytes
 import com.example.combineimage.utils.Utility.Companion.copyFile
 import com.example.combineimage.utils.Utility.Companion.filePathToBitmap
 import com.example.combineimage.utils.Utility.Companion.formatFileSize
-import com.example.combineimage.utils.Utility.Companion.getCurrentDateTime
 import com.example.combineimage.utils.Utility.Companion.getDownloadFolderPath
 import com.example.combineimage.utils.Utility.Companion.getFileSize
 import com.example.combineimage.utils.Utility.Companion.showToast
-import com.example.combineimage.databinding.ActivityReduceBinding
 import com.google.android.material.navigation.NavigationBarView
 import com.nareshchocha.filepickerlibrary.models.DocumentFilePickerConfig
 import com.nareshchocha.filepickerlibrary.ui.FilePicker
 import com.nareshchocha.filepickerlibrary.utilities.appConst.Const
 import id.zelory.compressor.Compressor
+import id.zelory.compressor.constraint.quality
 import id.zelory.compressor.constraint.resolution
 import id.zelory.compressor.constraint.size
 import kotlinx.coroutines.Dispatchers
@@ -62,6 +62,7 @@ class ReduceActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedList
         binding.txtOWidthHeight.text=""
 
         binding.bottomNavigation.menu.setGroupCheckable(1, true, true)
+
         for (i in 0 until binding.bottomNavigation.menu.size()) {
             val item = binding.bottomNavigation.menu.getItem(i)
             item.isChecked = false
@@ -70,9 +71,11 @@ class ReduceActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedList
         binding.btnBrowse.setOnClickListener {
             openImagePicker()
         }
+
         binding.drdSizeMeasure.setOnItemClickListener { parent, view, position, id ->
             selectedMeasure = parent.getItemAtPosition(position).toString()
         }
+
         binding.btnProcess.setOnClickListener {
 
             MainScope().launch(Dispatchers.IO) {
@@ -91,12 +94,26 @@ class ReduceActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedList
                         }
                         val imgSizeFormat = selectedMeasure
                         val sizeBytes = convertToBytes(imgSize, imgSizeFormat!!)
+                        var quality = 100
                         /*reduceImageSize(selectedImages[0].filePath, outputPath,sizeBytes)*/
                         compressedFile = Compressor.compress(this@ReduceActivity, File(selectedImages[0].filePath)) {
+                            quality(quality)
                             resolution(selectedImages[0].width, selectedImages[0].height)
                             size(sizeBytes)
                         }
-
+                        while (compressedFile!!.length()>sizeBytes)
+                        {
+                            quality--
+                            if(quality==0)
+                            {
+                                break
+                            }
+                            compressedFile = Compressor.compress(this@ReduceActivity, File(selectedImages[0].filePath)) {
+                                quality(quality)
+                                resolution(selectedImages[0].width, selectedImages[0].height)
+                                size(sizeBytes)
+                            }
+                        }
                         val compressBitmap = filePathToBitmap(compressedFile!!.absolutePath)
                         val compressBitmapWidth = compressBitmap.width
                         val compressBitmapHeight = compressBitmap.height
@@ -128,22 +145,18 @@ class ReduceActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedList
             }
 
         }
+
+        binding.bottomNavigation.setOnItemSelectedListener(this)
+
         val items = ArrayList<String>()
         items.add(resources.getStringArray(R.array.spinner_items)[0])
         items.add(resources.getStringArray(R.array.spinner_items)[1])
 
-        val adapter = ArrayAdapter(
-            this,
-            R.layout.simple_spinner_item,
-            items
-        )
+        val adapter = ArrayAdapter(this, R.layout.simple_spinner_item, items)
         binding.drdSizeMeasure.setText(resources.getStringArray(R.array.spinner_items)[0])
         adapter.setDropDownViewResource(R.layout.simple_spinner_item)
         binding.drdSizeMeasure.setAdapter(adapter)
         selectedMeasure=resources.getStringArray(R.array.spinner_items)[0]
-
-        binding.bottomNavigation.setOnItemSelectedListener(this)
-
 
     }
 
@@ -156,7 +169,13 @@ class ReduceActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedList
         return when (item.itemId) {
             R.id.action_save -> {
                 try{
-                    copyFile(compressedFile!!, File(getDownloadFolderPath()+"/"+compressedFile!!.name))
+                    val file = File(getDownloadFolderPath()+"/"+compressedFile!!.name)
+                    if(file.exists())
+                    {
+                        showToast(this,"File already saved")
+                        return false
+                    }
+                    copyFile(compressedFile!!, file)
                     showToast(this,"File saved")
                 }
                 catch (ex:Exception)
@@ -167,6 +186,18 @@ class ReduceActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedList
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.combine -> {
+                val intent = Intent(this, CombineImageActivity::class.java)
+                startActivity(intent)
+                finish()
+                return true
+            }
+        }
+        return false
     }
 
     private fun openImagePicker() {
@@ -228,17 +259,5 @@ class ReduceActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedList
                 }
             }
         }
-    }
-
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when(item.itemId) {
-            R.id.combine -> {
-                val intent = Intent(this, MainActivity::class.java)
-                startActivity(intent)
-                finish()
-                return true
-            }
-        }
-        return false
     }
 }

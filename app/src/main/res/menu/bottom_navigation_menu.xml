@@ -3,11 +3,11 @@
     <item
         android:id="@+id/combine"
         android:enabled="true"
-        android:icon="@drawable/merge"
+        android:icon="@drawable/ic_merge"
         android:title="Combine"/>
     <item
         android:id="@+id/reduce"
         android:enabled="true"
-        android:icon="@drawable/reduce"
+        android:icon="@drawable/ic_reduce"
         android:title="Reduce"/>
 </menu>

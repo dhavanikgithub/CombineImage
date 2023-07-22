@@ -6,7 +6,6 @@
     </string-array>
     <string name="printDimension">Dimension: %d X %d</string>
     <string name="printSize">Size: %s</string>
-    <string name="none">None</string>
     <string name="Done">Done</string>
     <string name="Allow">ALLOW</string>
     <string name="LoadingText">Processing....</string>
@@ -36,4 +35,13 @@
     <string name="type_here">Type Here</string>
     <string name="original_image">Original Image</string>
     <string name="compressed_image">Compressed Image</string>
+    <string name="title_activity_combine_image">CombineImageActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 </resources>

@@ -13,15 +13,27 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
     <style name="BorderSeekBarCustomStyle" parent="Widget.AppCompat.SeekBar">
         <item name="colorControlNormal">#33343F</item> <!-- Replace with your desired color -->
         <item name="colorControlActivated">#000000</item> <!-- Replace with your desired color -->
     </style>
+
     <style name="SpaceSeekBarCustomStyle" parent="Widget.AppCompat.SeekBar">
         <item name="colorControlNormal">#E0E0E0</item> <!-- Replace with your desired color -->
         <item name="colorControlActivated">#F7CF00</item> <!-- Replace with your desired color -->
     </style>
+
     <style name="CustomDialogTheme">
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
+
+    <style name="Theme.CombineImage.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.CombineImage.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.CombineImage.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>
