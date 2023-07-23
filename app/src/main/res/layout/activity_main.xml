@@ -20,10 +20,13 @@
 <!--        tools:srcCompat="@tools:sample/avatars"-->
 <!--        android:visibility="gone"/>-->
 
+
+
+
     <ScrollView
         android:id="@+id/combinedImageView"
-        android:layout_width="@dimen/_270sdp"
-        android:layout_height="@dimen/_220sdp"
+        android:layout_width="@dimen/_200sdp"
+        android:layout_height="@dimen/_180sdp"
         app:layout_constraintBottom_toTopOf="@+id/layout_switch1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -38,17 +41,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
+                android:contentDescription="@string/vertical_view_image"
                 android:scaleType="centerCrop"
-                tools:srcCompat="@tools:sample/avatars"
-                android:contentDescription="@string/vertical_view_image" />
+                tools:srcCompat="@tools:sample/avatars" />
 
         </RelativeLayout>
 
     </ScrollView>
     <HorizontalScrollView
         android:id="@+id/combinedImageView2"
-        android:layout_width="@dimen/_270sdp"
-        android:layout_height="@dimen/_220sdp"
+        android:layout_width="@dimen/_200sdp"
+        android:layout_height="@dimen/_180sdp"
         app:layout_constraintBottom_toTopOf="@+id/layout_switch1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -76,10 +79,10 @@
         android:id="@+id/layout_switch1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/spaceSeekBar"
-        app:layout_constraintEnd_toStartOf="@+id/drdResizeImageLayout"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/combinedImageView">
+        app:layout_constraintTop_toBottomOf="@id/combinedImageView"
+        app:layout_constraintBottom_toTopOf="@id/setDimensionLayout">
 
         <Switch
             android:id="@+id/switch1"
@@ -94,60 +97,71 @@
             android:text="@string/horizontally" />
     </LinearLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/drdResizeImageLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/setDimensionLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@+id/layout_switch1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/layout_switch1"
-        app:layout_constraintTop_toTopOf="@+id/layout_switch1">
+        app:layout_constraintTop_toBottomOf="@id/layout_switch1"
+        app:layout_constraintBottom_toTopOf="@+id/editImageLayout">
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Same width to all"
+            app:layout_constraintEnd_toStartOf="@+id/textView7"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
-        <AutoCompleteTextView
-            android:id="@+id/drdResizeImage"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:inputType="none"
-            android:labelFor="@id/drdResizeImage"/>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/drdSameWidthLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="@dimen/_90sdp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="@+id/textView6"
+            app:layout_constraintStart_toStartOf="@+id/textView6"
+            app:layout_constraintTop_toBottomOf="@+id/textView6">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <AutoCompleteTextView
+                android:id="@+id/drdSameWidth"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:inputType="none"
+                android:labelFor="@id/drdSameWidth" />
 
-    <TextView
-        android:id="@+id/tvSpacing"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/spacing"
-        app:layout_constraintBottom_toTopOf="@+id/spaceSeekBar"
-        app:layout_constraintStart_toStartOf="@+id/spaceSeekBar" />
-    <SeekBar
-        android:id="@+id/spaceSeekBar"
-        style="@style/SpaceSeekBarCustomStyle"
-        android:layout_width="@dimen/_250sdp"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/borderSeekBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layout_switch1"
-        />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Same height to all"
+            app:layout_constraintBottom_toBottomOf="@+id/textView6"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/textView6"
+            app:layout_constraintTop_toTopOf="@+id/textView6" />
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/drdSameHeightLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="@dimen/_90sdp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="@+id/textView7"
+            app:layout_constraintStart_toStartOf="@+id/textView7"
+            app:layout_constraintTop_toTopOf="@id/drdSameWidthLayout"
+            app:layout_constraintBottom_toBottomOf="@id/drdSameWidthLayout">
+            <AutoCompleteTextView
+                android:id="@+id/drdSameHeight"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:inputType="none"
+                android:labelFor="@id/drdSameHeight" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-    <TextView
-        android:id="@+id/tvBorder"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/border"
-        app:layout_constraintBottom_toTopOf="@+id/borderSeekBar"
-        app:layout_constraintStart_toStartOf="@+id/borderSeekBar" />
 
-    <SeekBar
-        android:id="@+id/borderSeekBar"
-        style="@style/BorderSeekBarCustomStyle"
-        android:layout_width="@dimen/_230sdp"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/btnSave"
-        app:layout_constraintStart_toStartOf="@+id/spaceSeekBar"
-        app:layout_constraintTop_toBottomOf="@id/spaceSeekBar" />
+
+
 
 
     <!--<com.google.android.material.button.MaterialButton
@@ -163,16 +177,101 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/borderSeekBar" />-->
 
+    <LinearLayout
+        android:id="@+id/editImageLayout"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_115sdp"
+        app:layout_constraintTop_toBottomOf="@+id/setDimensionLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:weightSum="1">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_weight=".5">
+            <me.tankery.lib.circularseekbar.CircularSeekBar
+                android:id="@+id/spaceCircularSeekBar"
+                android:layout_width="@dimen/_100sdp"
+                android:layout_height="@dimen/_100sdp"
+                android:textAlignment="center"
+                app:cs_circle_color="#DDDDDD"
+                app:cs_circle_progress_color="#0C79F5"
+                app:cs_circle_stroke_width="5dp"
+                app:cs_circle_style="round"
+                app:cs_maintain_equal_circle="true"
+                app:cs_max="10"
+                app:cs_pointer_color="#0C79F5"
+                app:cs_pointer_stroke_width="20dp"
+                android:layout_gravity="center"/>
 
-    <View
-        android:id="@+id/btnColorPic"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        app:layout_constraintBottom_toBottomOf="@+id/borderSeekBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/borderSeekBar"
-        app:layout_constraintTop_toTopOf="@+id/borderSeekBar"
-        android:background="#ff0000"/>
+            <TextView
+                android:id="@+id/tvSpacing"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/spacing"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_weight=".5">
+            <LinearLayout
+                android:id="@+id/borderCircularSeekBarLayout"
+                android:layout_width="@dimen/_100sdp"
+                android:layout_height="@dimen/_100sdp"
+                android:layout_gravity="center">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <me.tankery.lib.circularseekbar.CircularSeekBar
+                        android:id="@+id/borderCircularSeekBar"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_100sdp"
+                        android:textAlignment="center"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        pikolo:cs_circle_color="#DDDDDD"
+                        pikolo:cs_circle_progress_color="#ff0000"
+                        pikolo:cs_circle_stroke_width="5dp"
+                        pikolo:cs_circle_style="round"
+                        pikolo:cs_maintain_equal_circle="true"
+                        pikolo:cs_max="10"
+                        pikolo:cs_pointer_color="#ff0000"
+                        pikolo:cs_pointer_stroke_width="20dp" />
+
+                    <View
+                        android:id="@+id/btnColorPic"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:background="@drawable/circle"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvBorder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/border"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSave"
@@ -185,7 +284,9 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/borderSeekBar" />
+        />
+
+
 
     <!--<com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"

@@ -76,4 +76,7 @@ dependencies {
     //Image Crop
     implementation 'com.github.krokyze:ucropnedit:2.2.8'
 
+    //Seek Bar
+    implementation 'me.tankery.lib:circularSeekBar:1.4.2'
+
 }

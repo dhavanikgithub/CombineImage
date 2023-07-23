@@ -1,17 +1,18 @@
 package com.example.combineimage
 
-import android.R
+
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.shapes.OvalShape
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
@@ -28,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.tankery.lib.circularseekbar.CircularSeekBar
 import top.defaults.colorpicker.ColorPickerPopup
 import java.io.File
 
@@ -40,7 +42,8 @@ class MainActivity : AppCompatActivity() {
     private var customProgressDialog: CustomProgressDialog?=null
     private var mDefaultColor = Color.RED
     companion object {
-        var selectedResizedImage:String?=null
+        var selectedResizedImageWidth:String = "None"
+        var selectedResizedImageHeight:String = "None"
         var adapter:ArrayAdapter<String>? = null
     }
 
@@ -78,10 +81,11 @@ class MainActivity : AppCompatActivity() {
                         R.layout.simple_spinner_item,
                         items
                     )
-                    binding.drdResizeImage.setText("None")
+                    binding.drdSameWidth.setText("None")
+                    binding.drdSameHeight.setText("None")
                     adapter!!.setDropDownViewResource(R.layout.simple_spinner_item)
-                    binding.drdResizeImage.setAdapter(adapter)
-                    selectedResizedImage = "None"
+                    binding.drdSameWidth.setAdapter(adapter)
+                    binding.drdSameHeight.setAdapter(adapter)
                     combineImages()
                 }
             }
@@ -107,7 +111,12 @@ class MainActivity : AppCompatActivity() {
                 {
                         override fun onColorPicked(color: Int) {
                             mDefaultColor = color
-                            binding.btnColorPic.setBackgroundColor(color)
+                            val shapeDrawable = ShapeDrawable(OvalShape())
+                            shapeDrawable.paint.color = color
+                            binding.btnColorPic.background = shapeDrawable
+
+                            binding.borderCircularSeekBar.pointerColor=color
+                            binding.borderCircularSeekBar.circleProgressColor=color
                             combineImages()
                         }
                 })
@@ -117,7 +126,36 @@ class MainActivity : AppCompatActivity() {
             combineImages()
         }
 
-        binding.spaceSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+
+        binding.spaceCircularSeekBar.setOnSeekBarChangeListener(object : CircularSeekBar.OnCircularSeekBarChangeListener {
+            override fun onProgressChanged(circularSeekBar: CircularSeekBar?, progress: Float, fromUser: Boolean) {
+                combineImages()
+            }
+
+            override fun onStopTrackingTouch(seekBar: CircularSeekBar?) {
+
+            }
+
+            override fun onStartTrackingTouch(seekBar: CircularSeekBar?) {
+
+            }
+        })
+
+        binding.borderCircularSeekBar.setOnSeekBarChangeListener(object : CircularSeekBar.OnCircularSeekBarChangeListener {
+            override fun onProgressChanged(circularSeekBar: CircularSeekBar?, progress: Float, fromUser: Boolean) {
+                combineImages()
+            }
+
+            override fun onStopTrackingTouch(seekBar: CircularSeekBar?) {
+
+            }
+
+            override fun onStartTrackingTouch(seekBar: CircularSeekBar?) {
+
+            }
+        })
+
+        /*binding.spaceSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 combineImages()
             }
@@ -130,9 +168,9 @@ class MainActivity : AppCompatActivity() {
                 // Called when the user stops interacting with the SeekBar
                 // Use the 'progress' variable to access the final value set by the user
             }
-        })
+        })*/
 
-        binding.borderSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        /*binding.borderSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 combineImages()
             }
@@ -145,7 +183,7 @@ class MainActivity : AppCompatActivity() {
                 // Called when the user stops interacting with the SeekBar
                 // Use the 'progress' variable to access the final value set by the user
             }
-        })
+        })*/
 
         binding.btnSave.setOnClickListener {
             if(resultImage!=null){
@@ -163,8 +201,12 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-        binding.drdResizeImage.setOnItemClickListener { parent, view, position, id ->
-            selectedResizedImage = parent.getItemAtPosition(position).toString()
+        binding.drdSameWidth.setOnItemClickListener { parent, view, position, id ->
+            selectedResizedImageWidth = parent.getItemAtPosition(position).toString()
+            combineImages()
+        }
+        binding.drdSameHeight.setOnItemClickListener { parent, view, position, id ->
+            selectedResizedImageHeight = parent.getItemAtPosition(position).toString()
             combineImages()
         }
 
@@ -176,23 +218,31 @@ class MainActivity : AppCompatActivity() {
 
             for (i in 0 until selectedImages.size) {
                 var bitmap = selectedImages[i].bitmap
-                if(selectedResizedImage!="None")
+                if(selectedResizedImageWidth!="None")
                 {
-                    val item = selectedResizedImage!!.toInt()-1
+                    val item = selectedResizedImageWidth.toInt()-1
                     if(i!=item)
                     {
                         val newWidth = selectedImages[item].bitmap.width
-                        val newHeight = selectedImages[item].bitmap.height
-                        bitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, false)
+                        bitmap = Bitmap.createScaledBitmap(bitmap, newWidth, bitmap.height, false)
                     }
                 }
-                bitmapList.add(addBorderToImage(bitmap,binding.borderSeekBar.progress,mDefaultColor))
+                if(selectedResizedImageHeight!="None")
+                {
+                    val item = selectedResizedImageHeight.toInt()-1
+                    if(i!=item)
+                    {
+                        val newHeight = selectedImages[item].bitmap.height
+                        bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, newHeight, false)
+                    }
+                }
+                bitmapList.add(addBorderToImage(bitmap,binding.borderCircularSeekBar.progress.toInt(),mDefaultColor))
             }
 
             resultImage = if(!binding.switch1.isChecked) {
-                Utility.combineImages(bitmapList,binding.spaceSeekBar.progress,true)
+                Utility.combineImages(bitmapList,binding.spaceCircularSeekBar.progress.toInt(),true)
             } else{
-                Utility.combineImages(bitmapList,binding.spaceSeekBar.progress,false)
+                Utility.combineImages(bitmapList,binding.spaceCircularSeekBar.progress.toInt(),false)
             }
             if(binding.switch1.isChecked){
                 binding.combinedImageView2.visibility=View.VISIBLE
