@@ -80,7 +80,7 @@ class ReduceActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedList
 
             MainScope().launch(Dispatchers.IO) {
                 try {
-                    if(binding.txtInput.text.toString()!="")
+                    if(binding.txtInput.text.toString()!="" && selectedImages.size==1)
                     {
                         withContext(Dispatchers.Main)
                         {
