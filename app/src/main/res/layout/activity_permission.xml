@@ -14,7 +14,7 @@
         android:layout_marginTop="20dp"
         android:fontFamily="sans-serif"
         android:text="@string/need_permissions"
-        android:textColor="#000000"
+        style="?android:textViewStyle"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -74,7 +74,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/storage_permission_name"
-                    android:textColor="#000000"
+                    style="?android:textViewStyle"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -154,7 +154,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/camera_permission_name"
-                    android:textColor="#000000"
+                    style="?android:textViewStyle"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 

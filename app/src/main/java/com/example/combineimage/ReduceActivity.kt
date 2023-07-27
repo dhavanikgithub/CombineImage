@@ -9,6 +9,7 @@ import android.view.MenuItem
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.combineimage.databinding.ActivityReduceBinding
@@ -22,7 +23,7 @@ import com.example.combineimage.utils.Utility.Companion.getDownloadFolderPath
 import com.example.combineimage.utils.Utility.Companion.getFileSize
 import com.example.combineimage.utils.Utility.Companion.showToast
 import com.google.android.material.navigation.NavigationBarView
-import com.nareshchocha.filepickerlibrary.models.DocumentFilePickerConfig
+import com.nareshchocha.filepickerlibrary.models.*
 import com.nareshchocha.filepickerlibrary.ui.FilePicker
 import com.nareshchocha.filepickerlibrary.utilities.appConst.Const
 import id.zelory.compressor.Compressor
@@ -202,17 +203,24 @@ class ReduceActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedList
 
     private fun openImagePicker() {
         val intent = FilePicker.Builder(this)
-            .addPickDocumentFile(
-                DocumentFilePickerConfig(
-                    popUpIcon = R.drawable.ic_file,// DrawableRes Id
-                    popUpText = "File Media",
+            .addPickMedia(
+                PickMediaConfig(
+                    popUpIcon = R.drawable.ic_photo,// DrawableRes Id
+                    popUpText = "Image",
                     allowMultiple = false,// set Multiple pick file
                     maxFiles = 1,// max files working only in android latest version
-                    mMimeTypes = listOf("image/*"),// added Multiple MimeTypes
+                    mPickMediaType = PickMediaType.ImageOnly,
                     askPermissionTitle = null, // set Permission ask Title
                     askPermissionMessage = null,// set Permission ask Message
                     settingPermissionTitle = null,// set Permission setting Title
                     settingPermissionMessage = null,// set Permission setting Message
+                ),
+            )
+            .setPopUpConfig(
+                PopUpConfig(
+                    chooserTitle = "Choose Image",
+                    mPopUpType = PopUpType.BOTTOM_SHEET,// PopUpType.BOTTOM_SHEET Or PopUpType.DIALOG
+                    mOrientation = RecyclerView.HORIZONTAL // RecyclerView.VERTICAL or RecyclerView.HORIZONTAL
                 )
             )
             .build()

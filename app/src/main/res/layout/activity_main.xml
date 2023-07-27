@@ -9,20 +9,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-<!--    <ImageView-->
-<!--        android:id="@+id/combinedImageView"-->
-<!--        android:layout_width="@dimen/_200sdp"-->
-<!--        android:layout_height="@dimen/_200sdp"-->
-<!--        app:layout_constraintBottom_toTopOf="@+id/layout_switch1"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-<!--        tools:srcCompat="@tools:sample/avatars"-->
-<!--        android:visibility="gone"/>-->
-
-
-
-
     <ScrollView
         android:id="@+id/combinedImageView"
         android:layout_width="@dimen/_200sdp"
@@ -84,17 +70,54 @@
         app:layout_constraintTop_toBottomOf="@id/combinedImageView"
         app:layout_constraintBottom_toTopOf="@id/setDimensionLayout">
 
-        <Switch
-            android:id="@+id/switch1"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:text="@string/vertically"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
-
-        <TextView
+        <LinearLayout
+            android:id="@+id/alignVertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/horizontally" />
+            android:orientation="vertical"
+            android:background="@drawable/border"
+            android:padding="8dp"
+            android:layout_marginHorizontal="10dp">
+            <ImageView
+                android:id="@+id/alignVerticalImage"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_vertical_view"
+                android:layout_gravity="center_horizontal"
+                android:rotation="90"/>
+            <TextView
+                android:id="@+id/alignVerticalText"
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="Vertical"
+                style="?android:textViewStyle"
+                android:layout_gravity="center_horizontal"
+                android:textAlignment="center"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/alignHorizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/border"
+            android:padding="8dp"
+            android:layout_marginHorizontal="10dp">
+            <ImageView
+                android:id="@+id/alignHorizontalImage"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_vertical_view"
+                android:layout_gravity="center_horizontal" />
+            <TextView
+                android:id="@+id/alignHorizontalText"
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="Horizontal"
+                style="?android:textViewStyle"
+                android:layout_gravity="center_horizontal"
+                android:textAlignment="center"/>
+        </LinearLayout>
+
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -158,24 +181,6 @@
         </com.google.android.material.textfield.TextInputLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-
-
-
-
-
-    <!--<com.google.android.material.button.MaterialButton
-        android:id="@+id/btnPicImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/picimage"
-        android:textAllCaps="false"
-        android:visibility="gone"
-        app:cornerRadius="15dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnSave"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/borderSeekBar" />-->
 
     <LinearLayout
         android:id="@+id/editImageLayout"
@@ -285,17 +290,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         />
-
-
-
-    <!--<com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_navigation_menu" />-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

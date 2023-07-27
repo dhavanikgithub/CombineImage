@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.combineimage.databinding.ActivityImageCropperBinding
 import com.yalantis.ucrop.UCrop
+import com.yalantis.ucrop.model.AspectRatio
 import java.io.File
 import java.util.UUID
 
@@ -26,11 +27,10 @@ class ImageCropperActivity : AppCompatActivity() {
         options.setCompressionQuality(100)
         options.setFreeStyleCropEnabled(true)
         options.setShowCropGrid(true)
-        options.setShowCropFrame(true)
+        options.withAspectRatio(0F,0F)
 
         UCrop.of(fileUri,Uri.fromFile(File(cacheDir,dest_uri)))
             .withOptions(options)
-            .withAspectRatio(0F, 0F)
             .start(this)
 
 

@@ -1,6 +1,8 @@
 package com.example.combineimage
 
 
+import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -41,6 +43,7 @@ class MainActivity : AppCompatActivity() {
     private var selectedImages: MutableList<ImageData> = mutableListOf()
     private var customProgressDialog: CustomProgressDialog?=null
     private var mDefaultColor = Color.RED
+    private var isVerticalAlign:Boolean=true
     companion object {
         var selectedResizedImageWidth:String = "None"
         var selectedResizedImageHeight:String = "None"
@@ -51,6 +54,19 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        imageAlignCheck()
+
+        binding.alignHorizontal.setOnClickListener {
+            isVerticalAlign=false
+            imageAlignCheck()
+            combineImages()
+        }
+        binding.alignVertical.setOnClickListener {
+            isVerticalAlign=true
+            imageAlignCheck()
+            combineImages()
+        }
 
         /*binding.bottomNavigation.menu.setGroupCheckable(0, true, true)*/
         /*binding.bottomNavigation.setOnItemSelectedListener(this)*/
@@ -120,10 +136,6 @@ class MainActivity : AppCompatActivity() {
                             combineImages()
                         }
                 })
-        }
-
-        binding.switch1.setOnCheckedChangeListener { buttonView, isChecked ->
-            combineImages()
         }
 
 
@@ -212,6 +224,46 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun isDarkTheme(context: Context): Boolean {
+        return context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+    }
+    private fun imageAlignCheck()
+    {
+        val isDarkTheme = isDarkTheme(this@MainActivity)
+        var normalTextColor = Color.BLACK
+        var activeTextColor = Color.parseColor("#3592C4")
+        if(isDarkTheme)
+        {
+            normalTextColor = Color.parseColor("#AFAFAF")
+        }
+        else{
+            normalTextColor = Color.BLACK
+        }
+        if(isVerticalAlign)
+        {
+            val borderDrawable = ContextCompat.getDrawable(this, R.drawable.border)
+            binding.alignHorizontal.background=borderDrawable
+            binding.alignHorizontalText.setTextColor(normalTextColor)
+            binding.alignHorizontalImage.setImageDrawable(getDrawable(R.drawable.ic_vertical_view))
+
+            val activeBorderDrawable = ContextCompat.getDrawable(this, R.drawable.active_border)
+            binding.alignVertical.background=activeBorderDrawable
+            binding.alignVerticalText.setTextColor(activeTextColor)
+            binding.alignVerticalImage.setImageDrawable(getDrawable(R.drawable.ic_active_vertical_view))
+        }
+        else{
+            val borderDrawable = ContextCompat.getDrawable(this, R.drawable.border)
+            binding.alignVertical.background=borderDrawable
+            binding.alignVerticalText.setTextColor(normalTextColor)
+            binding.alignVerticalImage.setImageDrawable(getDrawable(R.drawable.ic_vertical_view))
+
+            val activeBorderDrawable = ContextCompat.getDrawable(this, R.drawable.active_border)
+            binding.alignHorizontal.background=activeBorderDrawable
+            binding.alignHorizontalText.setTextColor(activeTextColor)
+            binding.alignHorizontalImage.setImageDrawable(getDrawable(R.drawable.ic_active_vertical_view))
+        }
+    }
+
     private fun combineImages() {
         if (selectedImages.size >= 2) {
             val bitmapList = mutableListOf<Bitmap>()
@@ -239,12 +291,9 @@ class MainActivity : AppCompatActivity() {
                 bitmapList.add(addBorderToImage(bitmap,binding.borderCircularSeekBar.progress.toInt(),mDefaultColor))
             }
 
-            resultImage = if(!binding.switch1.isChecked) {
-                Utility.combineImages(bitmapList,binding.spaceCircularSeekBar.progress.toInt(),true)
-            } else{
-                Utility.combineImages(bitmapList,binding.spaceCircularSeekBar.progress.toInt(),false)
-            }
-            if(binding.switch1.isChecked){
+            resultImage = Utility.combineImages(bitmapList,binding.spaceCircularSeekBar.progress.toInt(),isVerticalAlign)
+
+            if(!isVerticalAlign){
                 binding.combinedImageView2.visibility=View.VISIBLE
                 /*binding.ivCombine2.setImageBitmap(resultImage)*/
 

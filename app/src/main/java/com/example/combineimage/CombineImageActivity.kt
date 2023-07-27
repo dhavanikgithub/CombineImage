@@ -22,7 +22,7 @@ import com.example.combineimage.utils.Utility.Companion.filePathToBitmap
 import com.example.combineimage.utils.Utility.Companion.uriToBitmap
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.Snackbar
-import com.nareshchocha.filepickerlibrary.models.DocumentFilePickerConfig
+import com.nareshchocha.filepickerlibrary.models.*
 import com.nareshchocha.filepickerlibrary.ui.FilePicker
 import com.nareshchocha.filepickerlibrary.utilities.appConst.Const
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
@@ -121,17 +121,24 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
 
     private fun openImagePicker() {
         val intent = FilePicker.Builder(this)
-            .addPickDocumentFile(
-                DocumentFilePickerConfig(
-                    popUpIcon = R.drawable.ic_file,// DrawableRes Id
-                    popUpText = "File Media",
+            .addPickMedia(
+                PickMediaConfig(
+                    popUpIcon = R.drawable.ic_photo,// DrawableRes Id
+                    popUpText = "Image",
                     allowMultiple = true,// set Multiple pick file
                     maxFiles = 5,// max files working only in android latest version
-                    mMimeTypes = listOf("image/*"),// added Multiple MimeTypes
+                    mPickMediaType = PickMediaType.ImageOnly,
                     askPermissionTitle = null, // set Permission ask Title
                     askPermissionMessage = null,// set Permission ask Message
                     settingPermissionTitle = null,// set Permission setting Title
                     settingPermissionMessage = null,// set Permission setting Message
+                ),
+            )
+            .setPopUpConfig(
+                PopUpConfig(
+                    chooserTitle = "Choose Image",
+                    mPopUpType = PopUpType.BOTTOM_SHEET,// PopUpType.BOTTOM_SHEET Or PopUpType.DIALOG
+                    mOrientation = RecyclerView.HORIZONTAL // RecyclerView.VERTICAL or RecyclerView.HORIZONTAL
                 )
             )
             .build()
