@@ -7,6 +7,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="red">#FFFF0000</color>
     <color name="colorPrimary">#2D89EF</color>
     <color name="dialogBackground">#60000000</color>
     <color name="permissionDoneText">#45C560</color>
@@ -15,4 +16,10 @@
     <color name="text_color_light">#FF000000</color> <!-- Black -->
     <color name="text_color_dark">#FFFFFFFF</color> <!-- White -->
 
+
+    <!-- Light Theme Colors -->
+    <color name="fab_light_color">#FF03A9F4</color>
+
+    <!-- Dark Theme Colors -->
+    <color name="fab_dark_color">#FFDC143C</color>
 </resources>

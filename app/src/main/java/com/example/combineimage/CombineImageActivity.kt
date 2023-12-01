@@ -1,17 +1,22 @@
 package com.example.combineimage
 
-import android.content.Context
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.DocumentsContract
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.setPadding
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.combineimage.adapter.MyAdapter
@@ -19,20 +24,22 @@ import com.example.combineimage.databinding.ActivityCombineImageBinding
 import com.example.combineimage.model.ItemsDataClass
 import com.example.combineimage.utils.Utility
 import com.example.combineimage.utils.Utility.Companion.filePathToBitmap
+import com.example.combineimage.utils.Utility.Companion.getInputStreamFromUri
+import com.example.combineimage.utils.Utility.Companion.getRealPath
+import com.example.combineimage.utils.Utility.Companion.isDarkTheme
+import com.example.combineimage.utils.Utility.Companion.saveInputStreamToFile
+import com.example.combineimage.utils.Utility.Companion.showSnackbar
 import com.example.combineimage.utils.Utility.Companion.uriToBitmap
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.snackbar.Snackbar
-import com.nareshchocha.filepickerlibrary.models.*
-import com.nareshchocha.filepickerlibrary.ui.FilePicker
-import com.nareshchocha.filepickerlibrary.utilities.appConst.Const
+import com.sangcomz.fishbun.FishBun
+import com.sangcomz.fishbun.adapter.image.impl.GlideAdapter
 import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
 import java.util.*
 
 
@@ -41,10 +48,15 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
     private lateinit var binding: ActivityCombineImageBinding
     private lateinit var myAdapter: MyAdapter
     private val tag = "CombineImageActivity"
+    private var clickedItemPosition:Int=-1
+    private lateinit var clickedItemBitmap:Bitmap
+    private lateinit var appFolder:String
+
 
     companion object
     {
         var selectedImages = ArrayList<ItemsDataClass>()
+        val REQUEST_CODE_CREATE_DIR = 100
     }
 
 
@@ -52,6 +64,35 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
         super.onCreate(savedInstanceState)
         binding = ActivityCombineImageBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.btnClearAll.imageTintList = ContextCompat.getColorStateList(this, R.color.white)
+        val isDarkTheme = isDarkTheme(this@CombineImageActivity)
+        binding.btnClearAll.setPadding(30)
+        binding.btnClearAll.elevation=20F
+        if(isDarkTheme)
+        {
+            val solidColorDrawable = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(getColor(R.color.fab_dark_color))
+            }
+            binding.btnClearAll.background=solidColorDrawable
+
+        }
+        else{
+            val solidColorDrawable = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(getColor(R.color.fab_light_color))
+            }
+            binding.btnClearAll.background=solidColorDrawable
+        }
+        selectedImages.clear()
+
+        if(!File("/storage/emulated/0/Pictures/CI_Pictures").exists())
+        {
+            createDirectoryInInternalStorage()
+        }
+        else{
+            appFolder="/storage/emulated/0/Pictures/CI_Pictures"
+        }
 
         binding.btnBrowse.setOnClickListener {
             openImagePicker()
@@ -64,7 +105,7 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
                 startActivity(intent)
             }
             else{
-                showSnackbar("At least 2 or more images required")
+                showSnackbar(binding.root,"At least 2 or more images required")
             }
         }
         myAdapter = MyAdapter(this@CombineImageActivity,selectedImages,this@CombineImageActivity)
@@ -75,12 +116,21 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
 
         binding.bottomNavigation.setOnItemSelectedListener(this)
 
-        var deletedItem:ItemsDataClass? = null
+        binding.btnClearAll.setOnClickListener {
+            if(selectedImages.size>0)
+            {
+                selectedImages.clear()
+                myAdapter.notifyDataSetChanged()
+            }
+
+        }
+
+        var deletedItem: ItemsDataClass?
 
         val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT){
             override fun onMove(recyclerView: RecyclerView, source: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                val sourcePosition = source.adapterPosition
-                val targetPosition = target.adapterPosition
+                val sourcePosition = source.absoluteAdapterPosition
+                val targetPosition = target.absoluteAdapterPosition
                 Collections.swap(selectedImages,sourcePosition,targetPosition)
                 myAdapter.swapItems(sourcePosition,targetPosition)
                 Log.i(tag,"Swapped item from selectedImages[$sourcePosition] to selectedImages[$targetPosition]")
@@ -89,7 +139,7 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.adapterPosition
+                val position = viewHolder.absoluteAdapterPosition
                 when(direction)
                 {
                     ItemTouchHelper.LEFT ->{
@@ -117,77 +167,103 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
 
         })
         itemTouchHelper.attachToRecyclerView(binding.rvCombineImage)
+
+
+    }
+
+    fun createDirectoryInInternalStorage() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        startActivityForResult(intent, REQUEST_CODE_CREATE_DIR)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQUEST_CODE_CREATE_DIR && resultCode == Activity.RESULT_OK) {
+            data?.data?.let { uri ->
+                val dirName = "CI_Pictures"
+                val parentDocumentUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri))
+                val dirUri = DocumentsContract.createDocument(
+                    contentResolver,
+                    parentDocumentUri,
+                    DocumentsContract.Document.MIME_TYPE_DIR,
+                    dirName
+                )
+                if (dirUri != null) {
+                    // Directory created successfully
+                    appFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath+"/CI_Pictures"
+                    Log.i(tag,"Created Directory Path: $appFolder")
+                } else {
+                    // Failed to create the directory
+                    Log.i(tag,"Failed to create the directory.")
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun getDirectoryPathFromUri(uri: Uri): String? {
+        val projection = arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+        val cursor = contentResolver.query(uri, projection, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val documentId = it.getString(0)
+                return "${Environment.getExternalStorageDirectory()}/$documentId"
+            }
+        }
+        return null
     }
 
     private fun openImagePicker() {
-        val intent = FilePicker.Builder(this)
-            .addPickMedia(
-                PickMediaConfig(
-                    popUpIcon = R.drawable.ic_photo,// DrawableRes Id
-                    popUpText = "Image",
-                    allowMultiple = true,// set Multiple pick file
-                    maxFiles = 5,// max files working only in android latest version
-                    mPickMediaType = PickMediaType.ImageOnly,
-                    askPermissionTitle = null, // set Permission ask Title
-                    askPermissionMessage = null,// set Permission ask Message
-                    settingPermissionTitle = null,// set Permission setting Title
-                    settingPermissionMessage = null,// set Permission setting Message
-                ),
-            )
-            .setPopUpConfig(
-                PopUpConfig(
-                    chooserTitle = "Choose Image",
-                    mPopUpType = PopUpType.BOTTOM_SHEET,// PopUpType.BOTTOM_SHEET Or PopUpType.DIALOG
-                    mOrientation = RecyclerView.HORIZONTAL // RecyclerView.VERTICAL or RecyclerView.HORIZONTAL
-                )
-            )
-            .build()
-        someActivityResultLauncher.launch(intent)
+        val isdark = isDarkTheme(this)
+        var backgroundColor = Color.parseColor("#FF03A9F4")
+        var textColor = Color.parseColor("#FFFFFFFF")
+        if(isdark)
+        {
+            backgroundColor = Color.parseColor("#FFDC143C")
+        }
+        FishBun.with(this)
+            .setImageAdapter(GlideAdapter())
+            .setMinCount(1)
+            .setActionBarTitle("Select Images")
+            .setActionBarColor(backgroundColor,backgroundColor)
+            .setActionBarTitleColor(textColor)
+            .setIsShowCount(true)
+            .setMaxCount(5)
+            .setAllViewTitle("All")
+            .setButtonInAlbumActivity(true)
+            .exceptGif(false)
+            .textOnImagesSelectionLimitReached("You can't select any more.")
+            .textOnNothingSelected("Please Select the images")
+            .setPickerCount(5)
+            .hasCameraInPickerPage(true)
+            .setSelectCircleStrokeColor(backgroundColor)
+            .setDoneButtonDrawable(ContextCompat.getDrawable(this, R.drawable.ic_check))
+            .startAlbumWithActivityResultCallback(openImagePickerActivityResultLauncher)
+
     }
 
-    private val someActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        // Handle the result of the activity here
+    private val openImagePickerActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             MainScope().launch(Dispatchers.IO) {
                 try{
-                    val filePaths = result.data?.getStringArrayListExtra(Const.BundleExtras.FILE_PATH_LIST)
-                    if(filePaths==null)
-                    {
-                        val filePath = result.data?.getStringExtra(Const.BundleExtras.FILE_PATH)
-                        val file = File(filePath!!)
-                        val bitmap = filePathToBitmap(filePath)
-
-                        if(!isItemAlreadySelected(file.name))
-                        {
-                            val item = ItemsDataClass(file.name,bitmap,filePath,file, Uri.fromFile(file))
-                            selectedImages.add(item)
-                            withContext(Dispatchers.Main)
-                            {
-                                myAdapter.notifyItemInserted(selectedImages.size-1)
-                            }
-
-                        }
-                        else{
-                            showSnackbar("Image already selected")
-                        }
-                        return@launch
-                    }
+                    val intent = result.data
+                    val filePaths = intent!!.getParcelableArrayListExtra<Uri>("intent_path")
                     Log.i(tag,"File list size: ${filePaths!!.size}")
-                    Log.i(tag, filePaths[0])
+                    Log.i(tag, "File Path: ${getRealPath(filePaths[0],this@CombineImageActivity)}")
 
                     for (i in 0 until filePaths.size)
                     {
-                        val file = File(filePaths[i])
-                        val bitmap = filePathToBitmap(filePaths[i])
+                        val realpath = getRealPath(filePaths[i],this@CombineImageActivity)
+                        val file = File(realpath)
                         if(!isItemAlreadySelected(file.name))
                         {
-                            val item = ItemsDataClass(file.name,bitmap,filePaths[i],file, Uri.fromFile(file))
+                            val bitmap = filePathToBitmap(realpath)
+                            val item = ItemsDataClass(file.name,bitmap,realpath,file, filePaths[i])
                             selectedImages.add(item)
-                            withContext(Dispatchers.Main)
-                            {
-                                myAdapter.notifyItemInserted(selectedImages.size-1)
-                            }
                         }
+                    }
+                    withContext(Dispatchers.Main)
+                    {
+                        myAdapter.notifyDataSetChanged()
                     }
                 }
                 catch (exNull:NullPointerException)
@@ -203,10 +279,59 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
         }
     }
 
-    private fun showSnackbar(message: String) {
-        val rootView: View = findViewById(android.R.id.content)
-        Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show()
-    }
+    /*private val someActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        // Handle the result of the activity here
+        if (result.resultCode == RESULT_OK) {
+            MainScope().launch(Dispatchers.IO) {
+                try{
+                    val filePaths = result.data?.getStringArrayListExtra(Const.BundleExtras.FILE_PATH_LIST)
+                    if(filePaths==null) {
+                        val filePath = result.data?.getStringExtra(Const.BundleExtras.FILE_PATH)
+                        val file = File(filePath!!)
+
+                        if(!isItemAlreadySelected(file.name))
+                        {
+                            val bitmap = filePathToBitmap(filePath)
+                            val item = ItemsDataClass(file.name,bitmap,filePath,file, Uri.fromFile(file))
+                            selectedImages.add(item)
+
+                        }
+                        else{
+                            showSnackbar(binding.root,"Image already selected")
+                        }
+                    }
+                    else{
+                        Log.i(tag,"File list size: ${filePaths!!.size}")
+                        Log.i(tag, filePaths[0])
+
+                        for (i in 0 until filePaths.size)
+                        {
+                            val file = File(filePaths[i])
+                            if(!isItemAlreadySelected(file.name))
+                            {
+                                val bitmap = filePathToBitmap(filePaths[i])
+                                val item = ItemsDataClass(file.name,bitmap,filePaths[i],file, Uri.fromFile(file))
+                                selectedImages.add(item)
+                            }
+                        }
+                    }
+                    withContext(Dispatchers.Main)
+                    {
+                        myAdapter.notifyDataSetChanged()
+                    }
+                }
+                catch (exNull:NullPointerException)
+                {
+                    Log.e(tag,"Null Pointer Exception: ${exNull.message}")
+                }
+                catch (e:Exception)
+                {
+                    Log.e(tag,"Exception: ${e.message}")
+                }
+
+            }
+        }
+    }*/
 
     private fun isItemAlreadySelected(filenameToCheck: String): Boolean {
         return selectedImages.any { it.filename == filenameToCheck }
@@ -223,9 +348,6 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
             myAdapter.notifyItemInserted(position)
         }.show()
     }
-
-    private var clickedItemPosition:Int=-1
-    private lateinit var clickedItemBitmap:Bitmap
     override fun onCropItemClicked(position: Int) {
         clickedItemPosition=position
         val intent = Intent(this,ImageCropperActivity::class.java)
@@ -235,7 +357,7 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
 
     private val imageCropActivityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         // Handle the result of the activity here
-        if (result.resultCode == -1) {
+        if (result.resultCode == RESULT_OK) {
             val uri = Uri.parse(result.data!!.getStringExtra("RESULT")!!)
             Log.i(tag,uri.toString())
             clickedItemBitmap = uriToBitmap(contentResolver,uri)
@@ -258,23 +380,7 @@ class CombineImageActivity : AppCompatActivity(), NavigationBarView.OnItemSelect
         }
     }
 
-    fun getInputStreamFromUri(context: Context, uri: Uri): InputStream? {
-        return context.contentResolver.openInputStream(uri)
-    }
 
-    fun saveInputStreamToFile(inputStream: InputStream, filePath: String): File {
-        val file = File(filePath)
-        val outputStream = FileOutputStream(file)
-        val buffer = ByteArray(4 * 1024) // 4 KB buffer size (you can adjust this)
-        var read: Int
-        while (inputStream.read(buffer).also { read = it } != -1) {
-            outputStream.write(buffer, 0, read)
-        }
-        outputStream.flush()
-        outputStream.close()
-        inputStream.close()
-        return file
-    }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {

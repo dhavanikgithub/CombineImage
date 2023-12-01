@@ -1,14 +1,18 @@
 package com.example.combineimage
 
 
-import android.content.Context
-import android.content.res.Configuration
+import android.app.Activity
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.OvalShape
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.provider.DocumentsContract
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -18,21 +22,25 @@ import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
+import com.example.combineimage.CombineImageActivity.Companion.REQUEST_CODE_CREATE_DIR
 import com.example.combineimage.databinding.ActivityMainBinding
 import com.example.combineimage.model.ImageData
 import com.example.combineimage.utils.CustomProgressDialog
 import com.example.combineimage.utils.Utility
 import com.example.combineimage.utils.Utility.Companion.addBorderToImage
 import com.example.combineimage.utils.Utility.Companion.getCurrentDateTime
-import com.example.combineimage.utils.Utility.Companion.getDownloadFolderPath
+import com.example.combineimage.utils.Utility.Companion.isDarkTheme
+import com.example.combineimage.utils.Utility.Companion.resizeBitmap
 import com.example.combineimage.utils.Utility.Companion.saveBitmapAsJpeg
 import com.example.combineimage.utils.Utility.Companion.showToast
+import com.github.dhaval2404.colorpicker.MaterialColorPickerDialog
+import com.github.dhaval2404.colorpicker.model.ColorShape
+import com.github.dhaval2404.colorpicker.model.ColorSwatch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.tankery.lib.circularseekbar.CircularSeekBar
-import top.defaults.colorpicker.ColorPickerPopup
 import java.io.File
 
 
@@ -42,8 +50,9 @@ class MainActivity : AppCompatActivity() {
     private var resultImage:Bitmap?=null
     private var selectedImages: MutableList<ImageData> = mutableListOf()
     private var customProgressDialog: CustomProgressDialog?=null
-    private var mDefaultColor = Color.RED
+    private var mDefaultColor = R.color.red
     private var isVerticalAlign:Boolean=true
+    private lateinit var appFolder:String
     companion object {
         var selectedResizedImageWidth:String = "None"
         var selectedResizedImageHeight:String = "None"
@@ -67,6 +76,13 @@ class MainActivity : AppCompatActivity() {
             imageAlignCheck()
             combineImages()
         }
+        if(!File("/storage/emulated/0/Pictures/CI_Pictures").exists())
+        {
+            createDirectoryInInternalStorage()
+        }
+        else{
+            appFolder="/storage/emulated/0/Pictures/CI_Pictures"
+        }
 
         /*binding.bottomNavigation.menu.setGroupCheckable(0, true, true)*/
         /*binding.bottomNavigation.setOnItemSelectedListener(this)*/
@@ -77,65 +93,90 @@ class MainActivity : AppCompatActivity() {
             customProgressDialog=CustomProgressDialog(this,this)
         }
 
-        if(receivedImageList.size>0) {
-            adapter?.clear()
-            adapter?.add("None")
-            MainScope().launch(Dispatchers.IO) {
-                val items = ArrayList<String>()
-                items.add("None")
-                for(i in 0 until receivedImageList.size)
-                {
-                    val file = receivedImageList[i].file
-                    val uri = receivedImageList[i].uri
-                    selectedImages.add(ImageData(uri, receivedImageList[i].bitmap))
-                    items.add((i+1).toString())
+        customProgressDialog?.start("Combine in process.....")
+        MainScope().launch(Dispatchers.IO)
+        {
+            try {
+                if(receivedImageList.size>0) {
+                    adapter?.clear()
+                    adapter?.add(getString(R.string.None))
+                    MainScope().launch(Dispatchers.IO) {
+                        val items = ArrayList<String>()
+                        items.add(getString(R.string.None))
+                        for(i in 0 until receivedImageList.size)
+                        {
+                            val uri = receivedImageList[i].uri
+                            selectedImages.add(
+                                ImageData(
+                                    uri,
+                                    resizeBitmap(
+                                        receivedImageList[i].bitmap,
+                                        receivedImageList[i].bitmap.width/2,
+                                        receivedImageList[i].bitmap.height/2
+                                    )
+                                )
+                            )
+                            items.add((i+1).toString())
+                        }
+                        withContext(Dispatchers.Main)
+                        {
+                            adapter = ArrayAdapter(
+                                this@MainActivity,
+                                R.layout.simple_spinner_item,
+                                items
+                            )
+                            binding.drdSameWidth.setText(getString(R.string.None))
+                            binding.drdSameHeight.setText(getString(R.string.None))
+                            adapter?.setDropDownViewResource(R.layout.simple_spinner_item)
+                            binding.drdSameWidth.setAdapter(adapter)
+                            binding.drdSameHeight.setAdapter(adapter)
+                            combineImages()
+                        }
+                    }
                 }
                 withContext(Dispatchers.Main)
                 {
-                    adapter = ArrayAdapter(
-                        this@MainActivity,
-                        R.layout.simple_spinner_item,
-                        items
-                    )
-                    binding.drdSameWidth.setText("None")
-                    binding.drdSameHeight.setText("None")
-                    adapter!!.setDropDownViewResource(R.layout.simple_spinner_item)
-                    binding.drdSameWidth.setAdapter(adapter)
-                    binding.drdSameHeight.setAdapter(adapter)
-                    combineImages()
+                    customProgressDialog?.stop()
                 }
             }
+            catch (ex:Exception)
+            {
+                withContext(Dispatchers.Main)
+                {
+                    customProgressDialog?.stop()
+                }
+            }
+
         }
+
 
         /*binding.btnPicImage.setOnClickListener {
 
             openImagePicker()
         }*/
 
+        val colorCodes = resources.getStringArray(R.array.colors_code)
         binding.btnColorPic.setOnClickListener {
-            ColorPickerPopup
-                .Builder(this@MainActivity)
-                .initialColor(Color.RED) // set initial color of the color picker dialog
-                .enableBrightness(true) // enable color brightness slider or not
-                .enableAlpha(true) // enable color alpha changer on slider or not
-                .okTitle("Choose") // this is top right Choose button
-                .cancelTitle("Cancel") // this is top left Cancel button which closes the
-                .showIndicator(true) // this is the small box which shows the chosen color by user at the bottom of the cancel\ button
-                .showValue(true) // this is the value which shows the selected color hex code the above all values can be made false to disable them on the color picker dialog.
-                .build()
-                .show(it, object : ColorPickerPopup.ColorPickerObserver()
-                {
-                        override fun onColorPicked(color: Int) {
-                            mDefaultColor = color
-                            val shapeDrawable = ShapeDrawable(OvalShape())
-                            shapeDrawable.paint.color = color
-                            binding.btnColorPic.background = shapeDrawable
 
-                            binding.borderCircularSeekBar.pointerColor=color
-                            binding.borderCircularSeekBar.circleProgressColor=color
-                            combineImages()
-                        }
-                })
+            MaterialColorPickerDialog
+                .Builder(this)
+                .setTitle("Pick Color")
+                .setColors(colorCodes)
+                .setColorShape(ColorShape.SQAURE)
+                .setColorSwatch(ColorSwatch._300)
+                .setDefaultColor(mDefaultColor)
+                .setColorListener { color, colorHex ->
+                    // Handle Color Selection
+                    mDefaultColor = color
+                    val shapeDrawable = ShapeDrawable(OvalShape())
+                    shapeDrawable.paint.color = color
+                    binding.btnColorPic.background = shapeDrawable
+
+                    binding.borderCircularSeekBar.pointerColor=color
+                    binding.borderCircularSeekBar.circleProgressColor=color
+                    combineImages()
+                }
+                .show()
         }
 
 
@@ -167,39 +208,13 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        /*binding.spaceSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                combineImages()
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar) {
-                // Called when the user starts interacting with the SeekBar
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                // Called when the user stops interacting with the SeekBar
-                // Use the 'progress' variable to access the final value set by the user
-            }
-        })*/
-
-        /*binding.borderSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                combineImages()
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar) {
-                // Called when the user starts interacting with the SeekBar
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-                // Called when the user stops interacting with the SeekBar
-                // Use the 'progress' variable to access the final value set by the user
-            }
-        })*/
-
         binding.btnSave.setOnClickListener {
             if(resultImage!=null){
-                if(saveBitmapAsJpeg(resultImage!!,getCurrentDateTime()+".jpg"))
+                if(!File("/storage/emulated/0/Pictures/CI_Pictures").exists())
+                {
+                    createDirectoryInInternalStorage()
+                }
+                if(saveBitmapAsJpeg(resultImage!!,"${appFolder}/CI_IMG_${getCurrentDateTime()}.jpg"))
                 {
                     showToast(this,"Image Saved")
                 }
@@ -224,20 +239,15 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun isDarkTheme(context: Context): Boolean {
-        return context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-    }
+
     private fun imageAlignCheck()
     {
         val isDarkTheme = isDarkTheme(this@MainActivity)
-        var normalTextColor = Color.BLACK
-        var activeTextColor = Color.parseColor("#3592C4")
-        if(isDarkTheme)
-        {
-            normalTextColor = Color.parseColor("#AFAFAF")
-        }
-        else{
-            normalTextColor = Color.BLACK
+        val activeTextColor = Color.parseColor("#3592C4")
+        val normalTextColor = if(isDarkTheme) {
+            Color.parseColor("#AFAFAF")
+        } else{
+            Color.BLACK
         }
         if(isVerticalAlign)
         {
@@ -267,10 +277,10 @@ class MainActivity : AppCompatActivity() {
     private fun combineImages() {
         if (selectedImages.size >= 2) {
             val bitmapList = mutableListOf<Bitmap>()
-
+            
             for (i in 0 until selectedImages.size) {
                 var bitmap = selectedImages[i].bitmap
-                if(selectedResizedImageWidth!="None")
+                if(selectedResizedImageWidth!=getString(R.string.None))
                 {
                     val item = selectedResizedImageWidth.toInt()-1
                     if(i!=item)
@@ -279,7 +289,7 @@ class MainActivity : AppCompatActivity() {
                         bitmap = Bitmap.createScaledBitmap(bitmap, newWidth, bitmap.height, false)
                     }
                 }
-                if(selectedResizedImageHeight!="None")
+                if(selectedResizedImageHeight!=getString(R.string.None))
                 {
                     val item = selectedResizedImageHeight.toInt()-1
                     if(i!=item)
@@ -290,7 +300,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 bitmapList.add(addBorderToImage(bitmap,binding.borderCircularSeekBar.progress.toInt(),mDefaultColor))
             }
-
             resultImage = Utility.combineImages(bitmapList,binding.spaceCircularSeekBar.progress.toInt(),isVerticalAlign)
 
             if(!isVerticalAlign){
@@ -344,7 +353,7 @@ class MainActivity : AppCompatActivity() {
                         customProgressDialog?.start(getString(R.string.LoadingText))
                     }
                     adapter?.clear()
-                    adapter?.add("None")
+                    adapter?.add(getString(R.string.None))
                     if (result.data?.clipData != null) {
                         val clipData = result.data!!.clipData
                         for (i in 0 until clipData!!.itemCount) {
@@ -384,16 +393,6 @@ class MainActivity : AppCompatActivity() {
         }
     }*/
 
-    /*override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when(item.itemId) {
-            R.id.reduce -> {
-                val intent = Intent(this, ReduceActivity::class.java)
-                startActivity(intent)
-                return true
-            }
-        }
-        return false
-    }*/
 
 
 //    private fun openImagePicker() {
@@ -405,24 +404,26 @@ class MainActivity : AppCompatActivity() {
 //    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(com.example.combineimage.R.menu.options_menu, menu)
+        menuInflater.inflate(R.menu.options_menu, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            com.example.combineimage.R.id.action_save -> {
+            R.id.action_save -> {
                 try{
                     if(resultImage!=null){
-                        val fileName = getCurrentDateTime()+".jpg"
-                        val file = File(getDownloadFolderPath()+"/"+fileName)
+                        val fileName = "CI_IMG_${getCurrentDateTime()}.jpg"
+                        val file = File("$appFolder/$fileName")
                         if(file.exists())
                         {
+                            Utility.triggerMediaScan(this, file)
                             showToast(this,"File already saved")
                             return false
                         }
-                        if(saveBitmapAsJpeg(resultImage!!,fileName))
+                        if(saveBitmapAsJpeg(resultImage!!,file.absolutePath))
                         {
+                            Utility.triggerMediaScan(this, file)
                             showToast(this,"File saved")
                         }
                         else{
@@ -436,12 +437,54 @@ class MainActivity : AppCompatActivity() {
                 }
                 catch (ex:Exception)
                 {
+                    throw ex
                     showToast(this,"Failed to save")
                 }
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    fun createDirectoryInInternalStorage() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        startActivityForResult(intent, REQUEST_CODE_CREATE_DIR)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQUEST_CODE_CREATE_DIR && resultCode == Activity.RESULT_OK) {
+            data?.data?.let { uri ->
+                val dirName = "CI_Pictures"
+                val parentDocumentUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri))
+                val dirUri = DocumentsContract.createDocument(
+                    contentResolver,
+                    parentDocumentUri,
+                    DocumentsContract.Document.MIME_TYPE_DIR,
+                    dirName
+                )
+                if (dirUri != null) {
+                    // Directory created successfully
+                    appFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath+"/CI_Pictures"
+                    Log.i(tag,"Created Directory Path: $appFolder")
+                } else {
+                    // Failed to create the directory
+                    Log.i(tag,"Failed to create the directory.")
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun getDirectoryPathFromUri(uri: Uri): String? {
+        val projection = arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+        val cursor = contentResolver.query(uri, projection, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val documentId = it.getString(0)
+                return "${Environment.getExternalStorageDirectory()}/$documentId"
+            }
+        }
+        return null
     }
 
 }

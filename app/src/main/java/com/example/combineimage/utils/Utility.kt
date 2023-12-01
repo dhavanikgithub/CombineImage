@@ -1,16 +1,20 @@
 package com.example.combineimage.utils
 
+import android.app.Activity
 import android.content.ContentResolver
 import android.content.Context
-import android.database.Cursor
+import android.content.res.Configuration
 import android.graphics.*
+import android.media.MediaScannerConnection
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import com.google.android.material.snackbar.Snackbar
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,16 +43,6 @@ class Utility {
             }
         }
 
-        fun getFileNameFromUri(contentResolver: ContentResolver, uri: Uri): String? {
-            var fileName: String? = null
-            contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                    fileName = cursor.getString(nameIndex)
-                }
-            }
-            return fileName
-        }
         fun getCurrentDateTime(): String {
             val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault())
             val currentTime = Date()
@@ -67,7 +61,23 @@ class Utility {
             }
         }
 
-        fun saveBitmapAsJpeg(bitmap: Bitmap, fileName: String): Boolean {
+        fun saveBitmapAsJpeg(bitmap: Bitmap, filePath: String):Boolean {
+            val file = File(filePath)
+            var outputStream: OutputStream? = null
+
+            try {
+                outputStream = FileOutputStream(file)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                outputStream.flush()
+                return true
+            } catch (e: Exception) {
+                throw e
+            } finally {
+                outputStream?.close()
+            }
+        }
+
+        /*fun saveBitmapAsJpeg(bitmap: Bitmap, fileName: String): Boolean {
             return try {
                 val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
                 FileOutputStream(file).use { outputStream ->
@@ -79,10 +89,14 @@ class Utility {
                 e.printStackTrace()
                 false
             }
-        }
+        }*/
 
         fun showToast(context: Context,message: String) {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+
+        fun showSnackbar(view: View, message: String) {
+            Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
         }
 
         fun filePathToBitmap(filePath:String):Bitmap
@@ -175,39 +189,29 @@ class Utility {
 
             return combinedBitmap
         }
-
-
-        fun bitmapToFile(bitmap: Bitmap): File? {
-            // Get the external storage directory
-            val storageDir = Environment.getExternalStorageDirectory()
-
-            // Create a temporary file name
-            val fileName = "temp_${getCurrentDateTime()}.jpg"
-
-            // Create the file object
-            val file = File(storageDir, fileName)
-
-            // Create a file output stream
-            var fileOutputStream: FileOutputStream? = null
-            try {
-                // Create the file output stream
-                fileOutputStream = FileOutputStream(file)
-
-                // Compress the bitmap to JPEG format and write it to the file output stream
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream)
-
-                // Flush and close the file output stream
-                fileOutputStream.flush()
-                fileOutputStream.close()
-
-                return file
-            } catch (e: IOException) {
-                e.printStackTrace()
-                return null
-            } finally {
-                // Close the file output stream in case of an exception
-                fileOutputStream?.close()
+        fun truncateName(name: String, maxLength: Int): String {
+            return if (name.length > maxLength) {
+                "${name.substring(0, maxLength - 3)}..."
+            } else {
+                name
             }
+        }
+        fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+            val width = bitmap.width
+            val height = bitmap.height
+
+            val ratioBitmap = width.toFloat() / height.toFloat()
+            val ratioMax = maxWidth.toFloat() / maxHeight.toFloat()
+
+            var finalWidth = maxWidth
+            var finalHeight = maxHeight
+            if (ratioMax > ratioBitmap) {
+                finalWidth = (maxHeight.toFloat() * ratioBitmap).toInt()
+            } else {
+                finalHeight = (maxWidth.toFloat() / ratioBitmap).toInt()
+            }
+
+            return Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true)
         }
 
         fun reduceImageSize(inputPath: String, outputPath: String, desiredFileSizeBytes: Long) {
@@ -268,6 +272,87 @@ class Utility {
         fun Bitmap.mirrorVertically(): Bitmap {
             val matrix = Matrix().apply { postScale(1f, -1f) }
             return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
+        }
+
+        fun createFolderAtPath(path: String): File? {
+            val folder = File(path)
+
+            if (!folder.exists()) {
+                val created = folder.mkdir()
+                if (!created) {
+                    // Failed to create the folder
+                    return null
+                }
+            }
+
+            return folder
+        }
+
+        fun isDarkTheme(context: Context): Boolean {
+            return context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+        }
+
+        fun getInputStreamFromUri(context: Context, uri: Uri): InputStream? {
+            return context.contentResolver.openInputStream(uri)
+        }
+
+        fun saveInputStreamToFile(inputStream: InputStream, filePath: String): File {
+            val file = File(filePath)
+            val outputStream = FileOutputStream(file)
+            val buffer = ByteArray(4 * 1024) // 4 KB buffer size (you can adjust this)
+            var read: Int
+            while (inputStream.read(buffer).also { read = it } != -1) {
+                outputStream.write(buffer, 0, read)
+            }
+            outputStream.flush()
+            outputStream.close()
+            inputStream.close()
+            return file
+        }
+
+        fun triggerMediaScan(context: Context, file: File) {
+            MediaScannerConnection.scanFile(
+                context,
+                arrayOf(file.absolutePath),
+                arrayOf("image/*"),
+                null
+            )
+        }
+
+        fun getRealPath(uri:Uri,context: Context):String{
+            var realpath=""
+            try{
+                if(uri.scheme.equals("content",true))
+                {
+                    val projection = arrayOf("_data")
+                    val cursor = context.contentResolver.query(uri,projection,null,null,null)
+                    if(cursor!=null)
+                    {
+                        val idcolumn = cursor.getColumnIndexOrThrow("_data")
+                        cursor.moveToFirst()
+                        realpath=cursor.getString(idcolumn)
+                        cursor.close()
+                    }
+                }
+                else if(uri.scheme.equals("file",true))
+                {
+                    realpath=uri.path!!
+                }
+            }
+            catch (ex:IllegalArgumentException)
+            {
+                Log.e("Utility",ex.toString())
+                showToast(context,"${ex.message}")
+            }
+            return realpath
+        }
+
+        fun dismissKeyboard(activity: Activity) {
+            val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            val view: View? = activity.currentFocus
+            if (view != null) {
+                imm.hideSoftInputFromWindow(view.windowToken, 0)
+            }
         }
     }
 }

@@ -18,6 +18,8 @@
 
         <item name="android:textViewStyle">@style/TextAppearance.LightTheme</item>
 
+        <item name="floatingActionButtonSmallStyle">@color/fab_light_color</item>
+
     </style>
 
     <!-- Custom style for TextView in Light Theme -->
@@ -41,4 +43,5 @@
     <style name="Theme.CombineImage.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="TextAppearance"></style>
+
 </resources>

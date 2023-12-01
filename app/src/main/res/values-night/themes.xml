@@ -17,6 +17,8 @@
         <!-- Customize your theme here. -->
 
         <item name="android:textViewStyle">@style/TextAppearance.DarkTheme</item>
+
+        <item name="floatingActionButtonSmallStyle">@color/fab_dark_color</item>
     </style>
 
     <!-- Custom style for TextView in Dark Theme -->

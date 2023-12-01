@@ -24,6 +24,7 @@ import com.example.combineimage.utils.Utility.Companion.mirrorHorizontally
 import com.example.combineimage.utils.Utility.Companion.mirrorVertically
 import com.example.combineimage.utils.Utility.Companion.rotateLeft
 import com.example.combineimage.utils.Utility.Companion.rotateRight
+import com.example.combineimage.utils.Utility.Companion.truncateName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -62,7 +63,7 @@ class MyAdapter(private  val context:Context, private var itemsList: MutableList
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
         itemImageView = holder.itemImage
-        holder.itemName.text = itemsList[position].filename
+        holder.itemName.text = truncateName(itemsList[position].filename,25)
 
         Glide.with(context)
             .asBitmap()
@@ -90,28 +91,28 @@ class MyAdapter(private  val context:Context, private var itemsList: MutableList
 
         }
         holder.itemCrop.setOnClickListener {
-            itemClickListener.onCropItemClicked(holder.adapterPosition)
+            itemClickListener.onCropItemClicked(holder.absoluteAdapterPosition)
         }
         holder.itemRotateLeft.setOnClickListener {
-            itemsList[holder.adapterPosition].bitmap=itemsList[holder.adapterPosition].bitmap.rotateLeft()
-            notifyItemChanged(holder.adapterPosition)
+            itemsList[holder.absoluteAdapterPosition].bitmap=itemsList[holder.absoluteAdapterPosition].bitmap.rotateLeft()
+            notifyItemChanged(holder.absoluteAdapterPosition)
         }
         holder.itemRotateRight.setOnClickListener {
-            itemsList[holder.adapterPosition].bitmap=itemsList[holder.adapterPosition].bitmap.rotateRight()
-            notifyItemChanged(holder.adapterPosition)
+            itemsList[holder.adapterPosition].bitmap=itemsList[holder.absoluteAdapterPosition].bitmap.rotateRight()
+            notifyItemChanged(holder.absoluteAdapterPosition)
         }
         holder.itemMirriorHorizontal.setOnClickListener {
-            itemsList[holder.adapterPosition].bitmap=itemsList[holder.adapterPosition].bitmap.mirrorHorizontally()
-            notifyItemChanged(holder.adapterPosition)
+            itemsList[holder.absoluteAdapterPosition].bitmap=itemsList[holder.absoluteAdapterPosition].bitmap.mirrorHorizontally()
+            notifyItemChanged(holder.absoluteAdapterPosition)
         }
         holder.itemMirriorVertical.setOnClickListener {
-            itemsList[holder.adapterPosition].bitmap=itemsList[holder.adapterPosition].bitmap.mirrorVertically()
-            notifyItemChanged(holder.adapterPosition)
+            itemsList[holder.absoluteAdapterPosition].bitmap=itemsList[holder.absoluteAdapterPosition].bitmap.mirrorVertically()
+            notifyItemChanged(holder.absoluteAdapterPosition)
         }
         holder.itemDelete.setOnClickListener {
-            itemClickListener.onDeleteItemClicked(holder.adapterPosition)
-            /*holder.adapterPosition*/
-            /*itemsList.removeAt(holder.adapterPosition)
+            itemClickListener.onDeleteItemClicked(holder.absoluteAdapterPosition)
+            /*holder.absoluteAdapterPosition*/
+            /*itemsList.removeAt(holder.absoluteAdapterPosition)
             Log.i(tag,"itemsList Item Removed at Index: $position")
             Log.i(tag,"itemsList Size: ${itemsList.size}")
             Log.i(tag,"selectedImages Item Removed at Index: $position")
